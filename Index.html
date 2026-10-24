@@ -2,7 +2,7 @@
 <html lang="th"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Contact TP thaweesap</title>
+<title>TP thaweesap contact</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
 :root{--bg1:#f9f6ea;--bg2:#e5f0e4;--card:#ffffff;--text:#143a2c;--muted:#5b776a;--gold:#a8821f;--gold2:#d4af37;--green:#1f6b4a;--line:#e4dab5;--ink:#fffbe9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -130,47 +130,67 @@ function renderAdmin(){
     draft.items.forEach(i=>{i.url=norm(i.url)});
     state=draft;msg.textContent='กำลังบันทึก...';
     try{
-      if(ghToken){await ghSave(state);msg.textContent='บันทึกแล้ว เว็บจะอัปเดตใน 1-2 นาทีค่ะ';return}
+      if(fbSigned){await fbSave(state);msg.textContent='บันทึกแล้วค่ะ';return}
       if(art){await art.publish(buildDoc());return}
       msg.textContent='บันทึกไม่ได้ในโหมดนี้';
-    }catch(e){msg.textContent='บันทึกไม่สำเร็จ: '+(e.message||'')}
+    }catch(e){msg.textContent='บันทึกไม่สำเร็จ: '+fbErr(e)}
   };
   const back=el('button','btn ghost','กลับหน้าแรก');back.onclick=()=>{admin=false;location.hash='';render()};
   bar.append(add,save,back);
-  if(ghToken){const out=el('button','btn ghost','ออกจากระบบ');out.onclick=()=>{try{sessionStorage.removeItem('ghT')}catch(e){}ghToken=null;canEdit=false;admin=false;location.hash='';render()};bar.append(out)}
+  if(fbSigned){const out=el('button','btn ghost','ออกจากระบบ');out.onclick=async()=>{try{await fb.U.signOut(fb.au)}catch(e){}location.hash=''};bar.append(out)}
   app.append(bar,msg);
 }
-const GH={o:'jindevinesia07',r:'thaweesapcontact',b:'main'};
-let ghToken=null;
-function gh(path,opt){opt=opt||{};const h={Authorization:'Bearer '+ghToken,Accept:'application/vnd.github+json'};if(opt.body)h['Content-Type']='application/json';return fetch('https://api.github.com/repos/'+GH.o+'/'+GH.r+path,{method:opt.method||'GET',headers:h,body:opt.body})}
-function b64(t){return btoa(unescape(encodeURIComponent(t)))}
-async function ghLogin(tok){
-  ghToken=tok;
-  const r=await gh('');
-  if(!r.ok){ghToken=null;throw new Error('โทเคนไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง repo นี้')}
-  const j=await r.json();
-  if(!(j.permissions&&j.permissions.push)){ghToken=null;throw new Error('โทเคนนี้ไม่มีสิทธิ์แก้ไขไฟล์ (ต้องเป็น Contents: Read and write)')}
-  try{sessionStorage.setItem('ghT',tok)}catch(e){}
-  const g=await gh('/contents/data.json?ref='+GH.b);
-  if(g.ok){try{const c=await g.json();const d=JSON.parse(decodeURIComponent(escape(atob(c.content.replace(/\n/g,'')))));if(d&&d.items)state=d}catch(e){}}
-  canEdit=true;
+const FIREBASE_CONFIG={apiKey:'AIzaSyCd4Yyml7GSGSZz1GC6mW8r1zgugFwyOrU',authDomain:'thaweesapcontact-1a457.firebaseapp.com',projectId:'thaweesapcontact-1a457',storageBucket:'thaweesapcontact-1a457.firebasestorage.app',messagingSenderId:'697285692880',appId:'1:697285692880:web:89a011756669d23ebb3dd5'};
+const FB_COL='site',FB_ID='contact';
+let fb=null,fbSigned=false;
+async function fbInit(){
+  if(fb)return fb;
+  if(!FIREBASE_CONFIG.apiKey||FIREBASE_CONFIG.apiKey.indexOf('YOUR')===0)return null;
+  const V='https://www.gstatic.com/firebasejs/10.12.2/';
+  const m=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-firestore.js'),import(V+'firebase-auth.js')]);
+  const a=m[0].initializeApp(FIREBASE_CONFIG);
+  fb={db:m[1].getFirestore(a),au:m[2].getAuth(a),F:m[1],U:m[2]};
+  fb.U.onAuthStateChanged(fb.au,u=>{
+    if(u){if(!fbSigned){fbSigned=true;canEdit=true;render()}}
+    else if(fbSigned){fbSigned=false;canEdit=false;admin=false;render()}
+  });
+  return fb;
 }
-async function ghSave(st){
-  let sha;const g=await gh('/contents/data.json?ref='+GH.b);
-  if(g.ok)sha=(await g.json()).sha;
-  const body={message:'update contacts',content:b64(JSON.stringify(st)),branch:GH.b};
-  if(sha)body.sha=sha;
-  const p=await gh('/contents/data.json',{method:'PUT',body:JSON.stringify(body)});
-  if(!p.ok)throw new Error('GitHub '+p.status);
+async function fbLoad(){
+  const f=await fbInit();if(!f)return;
+  const snap=await f.F.getDoc(f.F.doc(f.db,FB_COL,FB_ID));
+  if(snap.exists()){const d=snap.data();if(d&&Array.isArray(d.items)){state={title:d.title||state.title,items:d.items};if(!admin)render()}}
+}
+async function fbSave(st){
+  const f=await fbInit();if(!f)throw new Error('ยังไม่ได้ตั้งค่า Firebase ในโค้ด');
+  const d=JSON.parse(JSON.stringify({title:st.title,items:st.items}));
+  await f.F.setDoc(f.F.doc(f.db,FB_COL,FB_ID),d);
+}
+function fbErr(e){
+  const c=(e&&e.code)||'';
+  if(c.indexOf('invalid-credential')>=0||c.indexOf('wrong-password')>=0||c.indexOf('user-not-found')>=0||c.indexOf('invalid-email')>=0)return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  if(c.indexOf('permission-denied')>=0)return 'บัญชีนี้ไม่มีสิทธิ์บันทึก';
+  if(c.indexOf('too-many-requests')>=0)return 'ลองหลายครั้งเกินไป รอสักครู่แล้วลองใหม่';
+  return (e&&e.message)||'เกิดข้อผิดพลาด';
 }
 function showLogin(){
   const old=app.querySelector('.tip');if(old){old.remove();return}
   const t=el('div','tip');t.style.maxWidth='290px';
-  t.append(el('div',0,'เข้าสู่ระบบแอดมิน: วาง GitHub token'));
-  const i=el('input');i.type='password';i.placeholder='github_pat_...';i.style.cssText='width:100%;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--text)';
-  const b=el('button','btn','เข้าสู่ระบบ');const m=el('div');m.style.cssText='color:#b3402f;margin-top:6px';
-  b.onclick=async()=>{m.textContent='กำลังตรวจสอบ...';try{await ghLogin(i.value.trim());admin=true;location.hash='admin';render()}catch(e){m.textContent=e.message||'เข้าสู่ระบบไม่สำเร็จ'}};
-  t.append(i,b,m);app.append(t);
+  t.append(el('div',0,'เข้าสู่ระบบแอดมิน'));
+  const st='width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--text)';
+  const em=el('input');em.type='email';em.placeholder='อีเมลแอดมิน';em.autocomplete='username';em.style.cssText=st;
+  const pw=el('input');pw.type='password';pw.placeholder='รหัสผ่าน';pw.autocomplete='current-password';pw.style.cssText=st;
+  const b=el('button','btn','เข้าสู่ระบบ');b.style.marginTop='10px';
+  const m=el('div');m.style.cssText='color:#b3402f;margin-top:6px';
+  b.onclick=async()=>{
+    m.textContent='กำลังตรวจสอบ...';
+    try{
+      const f=await fbInit();if(!f)throw new Error('ยังไม่ได้ตั้งค่า Firebase ในโค้ด');
+      await f.U.signInWithEmailAndPassword(f.au,em.value.trim(),pw.value);
+      fbSigned=true;canEdit=true;admin=true;location.hash='admin';render();
+    }catch(e){m.textContent=fbErr(e)}
+  };
+  t.append(em,pw,b,m);app.append(t);
 }
 function buildDoc(){
   const c=document.documentElement.cloneNode(true);
@@ -195,8 +215,7 @@ function fx(){
 }
 admin=location.hash==='#admin';
 render();fx();
-fetch('data.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.items&&!admin){state=j;render()}}).catch(()=>{});
-try{const tk=sessionStorage.getItem('ghT');if(tk)ghLogin(tk).then(()=>{admin=location.hash==='#admin';render()}).catch(()=>{})}catch(e){}
+fbLoad().catch(()=>{});
 (async()=>{
   try{
     if(!window.claude)return;
