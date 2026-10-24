@@ -1,0 +1,154 @@
+-change:transform}
+main{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:36px 20px 48px}
+h1{margin:0;text-align:center;font-size:28px;font-weight:600;letter-spacing:.5px;color:var(--gold)}
+.sub{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 0}
+.orn{display:flex;align-items:center;gap:12px;margin:20px 0 26px;color:var(--gold2)}
+.orn i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent)}
+.list{display:grid;gap:14px}
+.item{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:18px;color:inherit;text-decoration:none;box-shadow:0 6px 20px -10px rgba(20,58,44,.35);transition:transform .2s,border-color .2s}
+.item:hover{transform:translateY(-3px);border-color:var(--gold2)}
+.ico{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:var(--ink);border:2px solid var(--gold2)}
+.ico svg{width:24px;height:24px}
+.tx{flex:1;min-width:0}
+.tx b{display:block;font-weight:600;font-size:16px}
+.tx small{display:block;color:var(--muted);font-size:14px;margin-top:2px;overflow-wrap:anywhere}
+.arr{color:var(--gold);font-size:22px}
+.foot{text-align:center;margin-top:30px;font-size:13px;color:var(--muted)}
+.who{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--gold);border:1.5px solid var(--gold2);cursor:pointer;padding:0}
+.who svg{width:22px;height:22px}
+.tip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 66px);right:14px;z-index:5;max-width:240px;background:var(--card);color:var(--text);border:1px solid var(--gold2);border-radius:12px;padding:10px 12px;font-size:13px}
+button,input,select{font:inherit}
+.btn{border:1px solid var(--gold2);background:var(--green);color:var(--ink);padding:10px 20px;border-radius:999px;cursor:pointer;font-weight:500}
+.btn.ghost{background:transparent;color:var(--gold)}
+.btn.del{background:transparent;color:#b3402f;border-color:#b3402f;padding:6px 12px;font-size:13px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;display:grid;gap:8px}
+.row label{font-size:12px;color:var(--muted)}
+.row input,.row select,.f input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.msg{text-align:center;color:var(--gold);font-size:14px;min-height:20px;margin-top:10px}
+.f{margin-bottom:16px;display:grid;gap:4px}
+.f label{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="fx" aria-hidden="true"></div>
+<main id="app"></main>
+<script type="application/json" id="data">{"title":"Contact TP ทวีทรัพย์","items":[{"app":"Line","text":"@thanee.ele","url":"https://line.me/ti/p/QxpKZgdYj2","kind":"line"},{"app":"Instagram","text":"@thanee._.o","url":"https://www.instagram.com/thanee._.o?dlrf=MTI0cnBrdzI3c3ptdA%3D%3D&utm_source=qr","kind":"instagram"},{"app":"Facebook","text":"ธานี ปรีชา","url":"https://www.facebook.com/share/1G9nx2Ee6n/?mibextid=wwXIfr","kind":"facebook"},{"app":"เบอร์โทรศัพท์มือถือ","text":"คุณท็อป 0934630300","url":"tel:0934630300","kind":"phone"}]}</script>
+<script>
+let state=JSON.parse(document.getElementById('data').textContent);
+let canEdit=false,art=null,admin=false;
+const app=document.getElementById('app');
+const IC={
+line:'<path d="M12 3C6.5 3 2 6.600 2 11c0 3.100 2 5.800 5 7.400V21l3.300-2c.6.100 1.200.100 1.700.100 5.500 0 10-3.600 10-8S17.500 3 12 3z" fill="currentColor"/>',
+instagram:'<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.500" cy="6.500" r="1.200" fill="currentColor"/>',
+facebook:'<path d="M14 8.500V6.800c0-.8.200-1.300 1.400-1.300H17V2.200C16.700 2.100 15.700 2 14.600 2 12.200 2 10.500 3.500 10.500 6.200v2.300H8v3.500h2.500V22H14V12h2.700l.4-3.500H14z" fill="currentColor"/>',
+phone:'<path d="M6.600 10.800a15 15 0 006.600 6.600l2.200-2.200c.3-.3.700-.4 1-.2 1.100.4 2.300.6 3.600.6.600 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.600 21 3 13.400 3 4c0-.6.400-1 1-1h3.500c.6 0 1 .4 1 1 0 1.300.2 2.500.6 3.600.1.300 0 .7-.2 1l-2.300 2.200z" fill="currentColor"/>',
+other:'<path d="M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'};
+Object.assign(IC,{
+tiktok:'<path d="M15 3v10.500a3.500 3.500 0 11-3.500-3.500M15 3c.300 2.500 1.900 4 4.500 4.200" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/>',
+youtube:'<rect x="2" y="5" width="20" height="14" rx="4" fill="currentColor"/><path d="M10 9l5 3-5 3z" fill="var(--green)"/>',
+x:'<path d="M4 4l16 16M20 4L4 20" fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round"/>',
+telegram:'<path d="M21 4L3 11l6 2.500L11 20l3-4.500 5 3.500L21 4z" fill="currentColor"/>',
+email:'<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.500 7l8.500 6 8.500-6" fill="none" stroke="currentColor" stroke-width="2"/>',
+website:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none" stroke="currentColor" stroke-width="2"/>',
+map:'<path d="M12 21s7-6.200 7-11.500A7 7 0 005 9.500C5 14.800 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.500" r="2.500" fill="currentColor"/>'});
+const KINDS=[['line','Line'],['instagram','Instagram'],['facebook','Facebook'],['tiktok','TikTok'],['youtube','YouTube'],['x','X (Twitter)'],['telegram','Telegram'],['phone','โทรศัพท์'],['email','อีเมล'],['website','เว็บไซต์'],['map','แผนที่ / ที่อยู่'],['other','อื่นๆ']];
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function norm(u){u=(u||'').trim();if(!u)return '#';if(/^(https?:|tel:|mailto:)/i.test(u))return u;if(/^[0-9+\-\s]{6,}$/.test(u))return 'tel:'+u.replace(/\s/g,'');return 'https://'+u}
+function icon(k){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.innerHTML=IC[k]||IC.other;return s}
+function iconFor(it){const c=it.cicon;if(c&&c.t==='img'&&/^data:image\//.test(c.v)){const m=document.createElement('img');m.src=c.v;m.alt='';m.style.cssText='width:26px;height:26px;object-fit:contain;border-radius:4px';return m}if(c&&c.t==='text'&&c.v){const s=document.createElement('span');s.textContent=c.v;s.style.cssText='font-size:22px;line-height:1';return s}return icon(it.kind)}
+function render(){
+  app.replaceChildren();
+  if(admin&&canEdit)return renderAdmin();
+  app.append(el('h1',0,state.title),el('p','sub','ติดต่อสอบถามได้ทุกช่องทาง'));
+  const o=el('div','orn');o.innerHTML='<i></i><span>✦</span><i></i>';app.append(o);
+  const l=el('div','list');
+  state.items.forEach(it=>{
+    const a=el('a','item');a.href=norm(it.url);
+    if(!/^tel:|^mailto:/i.test(a.href)){a.target='_blank';a.rel='noopener noreferrer'}
+    const i=el('div','ico');i.append(iconFor(it));
+    const t=el('div','tx');t.append(el('b',0,it.app),el('small',0,it.text));
+    a.append(i,t,el('span','arr','›'));l.append(a);
+  });
+  app.append(l);
+  app.append(el('div','foot','ทวีทรัพย์ · ยินดีให้บริการค่ะ'));
+  const w=el('button','who');w.setAttribute('aria-label','แอดมิน');
+  w.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>';
+  w.onclick=()=>{if(canEdit){admin=true;location.hash='admin';render();return}const old=app.querySelector('.tip');if(old){old.remove();return}const t=el('div','tip','หน้านี้สำหรับแอดมินเท่านั้น กรุณาเข้าสู่ระบบด้วยบัญชีแอดมิน');app.append(t);setTimeout(()=>t.remove(),3500)};
+  app.append(w);
+}
+function renderAdmin(){
+  const draft=JSON.parse(JSON.stringify(state));
+  app.append(el('h1',0,'แอดมิน'),el('p','sub','แก้ไขหัวข้อและช่องทางติดต่อ แล้วกดบันทึก'));
+  const o=el('div','orn');o.innerHTML='<i></i><span>✦</span><i></i>';app.append(o);
+  const f=el('div','f');f.append(el('label',0,'หัวข้อ'));const ti=el('input');ti.value=draft.title;ti.oninput=()=>draft.title=ti.value;f.append(ti);app.append(f);
+  const box=el('div');app.append(box);
+  function rows(){
+    box.replaceChildren();
+    draft.items.forEach((it,n)=>{
+      const r=el('div','row');
+      const fld=(lab,key,ph)=>{r.append(el('label',0,lab));const i=el('input');i.value=it[key]||'';i.placeholder=ph||'';i.oninput=()=>it[key]=i.value;r.append(i)};
+      fld('ชื่อแอพ','app','เช่น Line');fld('ข้อความที่แสดง','text','เช่น @thanee.ele');fld('ลิงก์','url','https://...');
+      r.append(el('label',0,'ไอคอน'));const s=el('select');KINDS.forEach(k=>{const op=el('option',0,k[1]);op.value=k[0];if(it.kind===k[0])op.selected=true;s.append(op)});const pv=el('div','ico');pv.style.width=pv.style.height='40px';const upd=()=>pv.replaceChildren(iconFor(it));upd();
+      s.onchange=()=>{it.kind=s.value;upd()};
+      const sr=el('div');sr.style.cssText='display:flex;gap:10px;align-items:center';sr.append(pv,s);r.append(sr);
+      r.append(el('label',0,'หรือพิมพ์อีโมจิ/ตัวอักษรเป็นไอคอนเอง'));
+      const ci=el('input');ci.maxLength=4;ci.placeholder='เช่น 🛍 หรือ ✉';ci.value=it.cicon&&it.cicon.t==='text'?it.cicon.v:'';
+      ci.oninput=()=>{it.cicon=ci.value.trim()?{t:'text',v:ci.value.trim()}:null;upd()};r.append(ci);
+      r.append(el('label',0,'หรือนำเข้ารูปไอคอนจากเครื่อง'));
+      const fi=el('input');fi.type='file';fi.accept='image/*';
+      fi.onchange=()=>{const fl=fi.files[0];if(!fl)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const g=c.getContext('2d');const k=96/Math.max(im.width,im.height),w=im.width*k,h=im.height*k;g.drawImage(im,(96-w)/2,(96-h)/2,w,h);it.cicon={t:'img',v:c.toDataURL('image/png')};ci.value='';upd()};im.src=rd.result};rd.readAsDataURL(fl)};r.append(fi);
+      const cl=el('button','btn ghost','ล้างไอคอนกำหนดเอง');cl.style.padding='6px 12px';cl.onclick=()=>{it.cicon=null;ci.value='';fi.value='';upd()};r.append(cl);
+      const d=el('button','btn del','ลบช่องทางนี้');d.onclick=()=>{draft.items.splice(n,1);rows()};r.append(d);
+      box.append(r);
+    });
+  }
+  rows();
+  const msg=el('div','msg');
+  const bar=el('div','bar');
+  const add=el('button','btn ghost','+ เพิ่มช่องทาง');add.onclick=()=>{draft.items.push({app:'',text:'',url:'',kind:'other'});rows()};
+  const save=el('button','btn','บันทึก');
+  save.onclick=async()=>{
+    if(!art){msg.textContent='บันทึกไม่ได้ในโหมดนี้';return}
+    draft.items.forEach(i=>{i.url=norm(i.url)});
+    state=draft;msg.textContent='กำลังบันทึก...';
+    try{await art.publish(buildDoc())}catch(e){msg.textContent='บันทึกไม่สำเร็จ ลองใหม่อีกครั้งค่ะ'}
+  };
+  const back=el('button','btn ghost','กลับหน้าแรก');back.onclick=()=>{admin=false;location.hash='';render()};
+  bar.append(add,save,back);app.append(bar,msg);
+}
+function buildDoc(){
+  const c=document.documentElement.cloneNode(true);
+  c.removeAttribute('data-theme');
+  c.querySelector('#app').replaceChildren();
+  c.querySelector('#fx').replaceChildren();
+  c.querySelector('#data').textContent=JSON.stringify(state).replace(/</g,'\\u003c');
+  return '<!DOCTYPE html>\n'+c.outerHTML;
+}
+/* ดาว หัวใจ ลอยแบบสะเปะสะปะ */
+function fx(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const L=document.getElementById('fx'),G=['★','♥','✦','♥','★','♡'],C=['#d4af37','#e2c25a','#2f9e6b','#b8922a','#58b98a'];
+  const R=(a,b)=>a+Math.random()*(b-a);
+  for(let i=0;i<24;i++){
+    const s=document.createElement('span');
+    s.textContent=G[i%G.length];s.style.color=C[Math.floor(R(0,C.length))];s.style.fontSize=R(12,30)+'px';
+    L.append(s);
+    const kf=[];for(let k=0;k<6;k++)kf.push({transform:`translate(${R(-5,100)}vw,${R(-5,100)}vh) rotate(${R(-200,200)}deg) scale(${R(.6,1.4)})`,opacity:R(.25,.8)});
+    s.animate(kf,{duration:R(14000,32000),iterations:Infinity,direction:'alternate',easing:'ease-in-out',delay:-R(0,15000)});
+  }
+}
+admin=location.hash==='#admin';
+render();fx();
+(async()=>{
+  try{
+    if(!window.claude)return;
+    const u=await claude.use('user');canEdit=!!(u&&(u.isOwner()||u.canEdit()));
+    art=await claude.use('artifact');
+  }catch(e){}
+  render();
+})();
+</script>
+
+
+</body></html>
